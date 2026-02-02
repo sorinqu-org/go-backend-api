@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -24,12 +24,12 @@ func (app *application) mount() http.Handler {
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("This is the API root\n"))
 	})
-	
+
 	productService := products.NewService()
 	productHandler := products.NewHandler(productService)
 	r.Get("/products", productHandler.ListProducts)
 
-	log.Printf("Server started at addr: %v", app.config.addr)
+	slog.Info("Server started", "addr", app.config.addr)
 	fmt.Printf(`
   _____       ___        _ 
  / ___/__    / _ | ___  (_)
