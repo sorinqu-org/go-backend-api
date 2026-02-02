@@ -10,7 +10,7 @@ import (
 )
 
 const findProductByID = `-- name: FindProductByID :one
-SELECT id, name, price_in_cents, quantity, created_at
+SELECT id, name, price_in_usd, quantity, created_at
 FROM products
 WHERE id = $1
 `
@@ -21,7 +21,7 @@ func (q *Queries) FindProductByID(ctx context.Context, id int64) (Product, error
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
-		&i.PriceInCents,
+		&i.PriceInUsd,
 		&i.Quantity,
 		&i.CreatedAt,
 	)
@@ -29,7 +29,7 @@ func (q *Queries) FindProductByID(ctx context.Context, id int64) (Product, error
 }
 
 const listProducts = `-- name: ListProducts :many
-SELECT id, name, price_in_cents, quantity, created_at
+SELECT id, name, price_in_usd, quantity, created_at
 FROM products
 `
 
@@ -45,7 +45,7 @@ func (q *Queries) ListProducts(ctx context.Context) ([]Product, error) {
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
-			&i.PriceInCents,
+			&i.PriceInUsd,
 			&i.Quantity,
 			&i.CreatedAt,
 		); err != nil {

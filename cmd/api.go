@@ -8,6 +8,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/jackc/pgx/v5"
+	"github.com/sorinqu-org/go-backend-api/internal/adapters/sqlc"
 	"github.com/sorinqu-org/go-backend-api/internal/products"
 )
 
@@ -25,7 +27,7 @@ func (app *application) mount() http.Handler {
 		w.Write([]byte("This is the API root\n"))
 	})
 
-	productService := products.NewService()
+	productService := products.NewService(repo.New(app.db))
 	productHandler := products.NewHandler(productService)
 	r.Get("/products", productHandler.ListProducts)
 
@@ -53,6 +55,7 @@ func (app *application) run(h http.Handler) error {
 
 type application struct {
 	config config
+	db *pgx.Conn
 }
 
 type config struct {
