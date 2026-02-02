@@ -30,6 +30,7 @@ func (app *application) mount() http.Handler {
 	productService := products.NewService(repo.New(app.db))
 	productHandler := products.NewHandler(productService)
 	r.Get("/products", productHandler.ListProducts)
+	r.Get("/product/{id}", productHandler.GetProduct)
 
 	slog.Info("Server started", "addr", app.config.addr)
 	fmt.Printf(`
@@ -55,7 +56,7 @@ func (app *application) run(h http.Handler) error {
 
 type application struct {
 	config config
-	db *pgx.Conn
+	db     *pgx.Conn
 }
 
 type config struct {
