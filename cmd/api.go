@@ -10,6 +10,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgx/v5"
 	"github.com/sorinqu-org/go-backend-api/internal/adapters/sqlc"
+	"github.com/sorinqu-org/go-backend-api/internal/orders"
 	"github.com/sorinqu-org/go-backend-api/internal/products"
 )
 
@@ -31,6 +32,12 @@ func (app *application) mount() http.Handler {
 	productHandler := products.NewHandler(productService)
 	r.Get("/products", productHandler.ListProducts)
 	r.Get("/product/{id}", productHandler.GetProduct)
+
+	orderService := orders.NewService(repo.New(app.db))
+	ordersHandler := orders.NewHandler(orderService)
+	r.Route("/orders", func(r chi.Router) {
+		r.Post("/", ordersHandler.PlaceOrder)
+	})
 
 	slog.Info("Server started", "addr", app.config.addr)
 	fmt.Printf(`

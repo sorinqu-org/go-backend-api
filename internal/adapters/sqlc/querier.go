@@ -9,8 +9,15 @@ import (
 )
 
 type Querier interface {
+	AddOrderItem(ctx context.Context, arg AddOrderItemParams) (int64, error)
+	ChangeProductQuantity(ctx context.Context, arg ChangeProductQuantityParams) (int32, error)
+	DeleteOrderByID(ctx context.Context, id int64) error
+	DeleteOrderItemsByOrderID(ctx context.Context, orderID int64) error
 	FindProductByID(ctx context.Context, id int64) (Product, error)
+	GetItemByID(ctx context.Context, id int64) (OrderItem, error)
+	GetOrderByID(ctx context.Context, id int64) (Order, error)
 	ListProducts(ctx context.Context) ([]Product, error)
+	PlaceOrder(ctx context.Context, customerID int64) (int64, error)
 }
 
 var _ Querier = (*Queries)(nil)

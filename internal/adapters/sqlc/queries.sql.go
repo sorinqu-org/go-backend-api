@@ -9,6 +9,71 @@ import (
 	"context"
 )
 
+const addOrderItem = `-- name: AddOrderItem :one
+INSERT INTO order_items (order_id, product_id, quantity, price_in_usd)
+VALUES ($1, $2, $3, $4)
+RETURNING id
+`
+
+type AddOrderItemParams struct {
+	OrderID    int64 `json:"order_id"`
+	ProductID  int64 `json:"product_id"`
+	Quantity   int32 `json:"quantity"`
+	PriceInUsd int32 `json:"price_in_usd"`
+}
+
+func (q *Queries) AddOrderItem(ctx context.Context, arg AddOrderItemParams) (int64, error) {
+	row := q.db.QueryRow(ctx, addOrderItem,
+		arg.OrderID,
+		arg.ProductID,
+		arg.Quantity,
+		arg.PriceInUsd,
+	)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
+}
+
+const changeProductQuantity = `-- name: ChangeProductQuantity :one
+UPDATE products
+SET quantity = quantity - $2
+WHERE id = $1
+  AND quantity >= $2
+RETURNING quantity
+`
+
+type ChangeProductQuantityParams struct {
+	ID       int64 `json:"id"`
+	Quantity int32 `json:"quantity"`
+}
+
+func (q *Queries) ChangeProductQuantity(ctx context.Context, arg ChangeProductQuantityParams) (int32, error) {
+	row := q.db.QueryRow(ctx, changeProductQuantity, arg.ID, arg.Quantity)
+	var quantity int32
+	err := row.Scan(&quantity)
+	return quantity, err
+}
+
+const deleteOrderByID = `-- name: DeleteOrderByID :exec
+DELETE FROM orders
+WHERE id = $1
+`
+
+func (q *Queries) DeleteOrderByID(ctx context.Context, id int64) error {
+	_, err := q.db.Exec(ctx, deleteOrderByID, id)
+	return err
+}
+
+const deleteOrderItemsByOrderID = `-- name: DeleteOrderItemsByOrderID :exec
+DELETE FROM order_items
+WHERE order_id = $1
+`
+
+func (q *Queries) DeleteOrderItemsByOrderID(ctx context.Context, orderID int64) error {
+	_, err := q.db.Exec(ctx, deleteOrderItemsByOrderID, orderID)
+	return err
+}
+
 const findProductByID = `-- name: FindProductByID :one
 SELECT id, name, price_in_usd, quantity, created_at
 FROM products
@@ -25,6 +90,38 @@ func (q *Queries) FindProductByID(ctx context.Context, id int64) (Product, error
 		&i.Quantity,
 		&i.CreatedAt,
 	)
+	return i, err
+}
+
+const getItemByID = `-- name: GetItemByID :one
+SELECT id, order_id, product_id, quantity, price_in_usd
+from order_items
+WHERE id = $1
+`
+
+func (q *Queries) GetItemByID(ctx context.Context, id int64) (OrderItem, error) {
+	row := q.db.QueryRow(ctx, getItemByID, id)
+	var i OrderItem
+	err := row.Scan(
+		&i.ID,
+		&i.OrderID,
+		&i.ProductID,
+		&i.Quantity,
+		&i.PriceInUsd,
+	)
+	return i, err
+}
+
+const getOrderByID = `-- name: GetOrderByID :one
+SELECT id, customer_id, created_at
+FROM orders
+WHERE id = $1
+`
+
+func (q *Queries) GetOrderByID(ctx context.Context, id int64) (Order, error) {
+	row := q.db.QueryRow(ctx, getOrderByID, id)
+	var i Order
+	err := row.Scan(&i.ID, &i.CustomerID, &i.CreatedAt)
 	return i, err
 }
 
@@ -57,4 +154,17 @@ func (q *Queries) ListProducts(ctx context.Context) ([]Product, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const placeOrder = `-- name: PlaceOrder :one
+INSERT INTO orders (customer_id)
+VALUES ($1)
+RETURNING id
+`
+
+func (q *Queries) PlaceOrder(ctx context.Context, customerID int64) (int64, error) {
+	row := q.db.QueryRow(ctx, placeOrder, customerID)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
 }
