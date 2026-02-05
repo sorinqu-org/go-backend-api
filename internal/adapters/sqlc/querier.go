@@ -16,6 +16,7 @@ type Querier interface {
 	FindProductByID(ctx context.Context, id int64) (Product, error)
 	GetItemByID(ctx context.Context, id int64) (OrderItem, error)
 	GetOrderByID(ctx context.Context, id int64) (Order, error)
+	ListOrders(ctx context.Context) ([]Order, error)
 	ListProducts(ctx context.Context) ([]Product, error)
 	PlaceOrder(ctx context.Context, customerID int64) (int64, error)
 }

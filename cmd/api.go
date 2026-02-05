@@ -36,7 +36,9 @@ func (app *application) mount() http.Handler {
 	orderService := orders.NewService(repo.New(app.db))
 	ordersHandler := orders.NewHandler(orderService)
 	r.Route("/orders", func(r chi.Router) {
+		r.Get("/", ordersHandler.ListOrders)
 		r.Post("/", ordersHandler.PlaceOrder)
+		r.Get("/{id}", ordersHandler.GetOrderByID)
 	})
 
 	slog.Info("Server started", "addr", app.config.addr)

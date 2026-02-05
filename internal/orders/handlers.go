@@ -4,14 +4,11 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
+	"strconv"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/sorinqu-org/go-backend-api/internal/json"
 )
-
-type PlaceOrderBodyParams struct {
-	CustomerID int64       `json:"customer_id"`
-	Items      []OrderItem `json:"items"`
-}
 
 type handler struct {
 	service service
@@ -50,4 +47,39 @@ func (h *handler) PlaceOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.Write(w, http.StatusOK, map[string]int64{"order_id": orderID})
+}
+
+func (h *handler) GetOrderByID(w http.ResponseWriter, r *http.Request) {
+	orderIDQuery := chi.URLParam(r, "id")
+	orderID, err := strconv.ParseInt(orderIDQuery, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid order ID", http.StatusBadRequest)
+		return
+	}
+
+	order, err := h.service.GetOrderByID(r.Context(), orderID)
+	if err != nil {
+		http.Error(
+			w,
+			"Failed to get order: "+err.Error(),
+			http.StatusInternalServerError,
+		)
+		return
+	}
+
+	json.Write(w, http.StatusOK, order)
+}
+
+func (h *handler) ListOrders(w http.ResponseWriter, r *http.Request) {
+	orders, err := h.service.ListOrders(r.Context())
+	if err != nil {
+		http.Error(
+			w,
+			"Failed to list orders: "+err.Error(),
+			http.StatusInternalServerError,
+		)
+		return
+	}
+
+	json.Write(w, http.StatusOK, orders)
 }

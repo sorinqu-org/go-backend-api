@@ -22,6 +22,10 @@ SELECT *
 FROM orders
 WHERE id = $1;
 
+-- name: ListOrders :many
+SELECT *
+FROM orders;
+
 -- name: GetItemByID :one
 SELECT *
 from order_items
